@@ -348,12 +348,16 @@
           if (conn) { try { conn.close(); } catch (e) {} }
           conn = c;
           greeted = false;
-          conn.on('open', function () {
+          var opened = false;
+          function handleOpen() {
+            if (opened) return;
+            opened = true;
             onCall = true;
             setStatus('live', 'On call — AI receptionist is talking');
             startTimer();
             tryGreet();
-          });
+          }
+          conn.on('open', handleOpen);
           conn.on('data', function (data) {
             var msg = data;
             if (typeof data === 'string') { try { msg = JSON.parse(data); } catch (e) { return; } }
@@ -368,6 +372,9 @@
           });
           conn.on('close', function () { endCall(); });
           conn.on('error', function () { /* close handler resets state */ });
+          // The channel may already be open before these handlers were
+          // attached (the 'open' event is not replayed) — check directly.
+          if (c.open) handleOpen();
         }
 
         function startReceiving() {
