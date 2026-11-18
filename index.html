@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Call The Mind Curator Studio</title>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+      :root {
+        --bg: #f6f8f7;
+        --surface: #ffffff;
+        --surface-2: #eef4f2;
+        --ink: #12211e;
+        --ink-soft: #47605a;
+        --line: #d7e3df;
+        --teal: #0f766e;
+        --teal-bright: #14b8a6;
+        --teal-ink: #ffffff;
+        --bubble-you: #0f766e;
+        --bubble-you-ink: #ffffff;
+        --bubble-studio: #eef4f2;
+        --bubble-studio-ink: #12211e;
+        --danger: #b3261e;
+        --danger-bg: #fbeae8;
+        --ok: #0f766e;
+        --shadow: 0 10px 30px rgba(15, 118, 110, 0.10);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b100f;
+          --surface: #131c1a;
+          --surface-2: #1a2623;
+          --ink: #e8f2ef;
+          --ink-soft: #9db8b1;
+          --line: #263733;
+          --teal: #14b8a6;
+          --teal-bright: #2dd4bf;
+          --teal-ink: #06231f;
+          --bubble-you: #0f766e;
+          --bubble-you-ink: #ffffff;
+          --bubble-studio: #1d2b28;
+          --bubble-studio-ink: #e8f2ef;
+          --danger: #f2b8b5;
+          --danger-bg: #3a1d1b;
+          --ok: #2dd4bf;
+          --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 20px 16px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        min-height: 100dvh;
+      }
+      header { padding-top: 10px; }
+      .mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--teal);
+      }
+      .mark .diamond {
+        width: 9px; height: 9px;
+        background: var(--teal-bright);
+        transform: rotate(45deg);
+        border-radius: 2px;
+        flex: none;
+      }
+      h1 {
+        font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+        font-size: 34px;
+        line-height: 1.15;
+        font-weight: 600;
+        margin: 12px 0 8px;
+      }
+      .lede { color: var(--ink-soft); font-size: 16px; margin: 0; max-width: 42ch; }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 28px;
+      }
+      .dot {
+        width: 11px; height: 11px;
+        border-radius: 50%;
+        background: #9db8b1;
+        flex: none;
+      }
+      .dot.connecting { background: #d97706; animation: pulse 1.1s ease-in-out infinite; }
+      .dot.live { background: var(--teal-bright); animation: pulse 1.6s ease-in-out infinite; }
+      .dot.error { background: var(--danger); animation: none; }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dot.connecting, .dot.live { animation: none; }
+      }
+      #statusText { font-size: 15px; font-weight: 600; flex: 1; }
+      #timer {
+        font-variant-numeric: tabular-nums;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--teal);
+        display: none;
+      }
+      #timer.on { display: block; }
+
+      .field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--ink-soft);
+        margin-bottom: 6px;
+      }
+      .field input {
+        width: 100%;
+        font: inherit;
+        font-size: 16px;
+        padding: 12px 14px;
+        border: 1.5px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface-2);
+        color: var(--ink);
+        min-height: 48px;
+      }
+      .field input:focus {
+        outline: 2px solid var(--teal-bright);
+        outline-offset: 1px;
+        border-color: var(--teal);
+      }
+      .field .hint { font-size: 13px; color: var(--ink-soft); margin: 6px 0 0; }
+
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: 0;
+        border-radius: 14px;
+        min-height: 48px;
+        padding: 12px 18px;
+        font-weight: 700;
+      }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      #startBtn {
+        background: var(--teal);
+        color: var(--teal-ink);
+        font-size: 19px;
+        min-height: 60px;
+        border-radius: 16px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      #startBtn:not(:disabled):active { background: var(--teal-bright); }
+      #endBtn {
+        background: var(--danger-bg);
+        color: var(--danger);
+        width: 100%;
+        font-size: 16px;
+        display: none;
+      }
+      #endBtn.on { display: block; }
+      .mic-note { font-size: 13.5px; color: var(--ink-soft); margin: 0; display: none; }
+      .mic-note.on { display: block; }
+
+      .convo-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      h2 {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        margin: 0;
+      }
+      #log {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 120px;
+      }
+      #log .empty {
+        color: var(--ink-soft);
+        font-size: 15px;
+        border: 1.5px dashed var(--line);
+        border-radius: 12px;
+        padding: 18px 14px;
+        text-align: center;
+        margin: 0;
+      }
+      .msg { display: flex; flex-direction: column; max-width: 88%; }
+      .msg .who {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        margin-bottom: 3px;
+      }
+      .msg .bubble {
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 16px;
+        overflow-wrap: break-word;
+        white-space: pre-wrap;
+      }
+      .msg.you { align-self: flex-end; align-items: flex-end; }
+      .msg.you .bubble {
+        background: var(--bubble-you);
+        color: var(--bubble-you-ink);
+        border-bottom-right-radius: 4px;
+      }
+      .msg.studio { align-self: flex-start; align-items: flex-start; }
+      .msg.studio .bubble {
+        background: var(--bubble-studio);
+        color: var(--bubble-studio-ink);
+        border-bottom-left-radius: 4px;
+      }
+
+      #typeForm { display: none; gap: 10px; }
+      #typeForm.on { display: flex; }
+      #typeInput {
+        flex: 1;
+        font: inherit;
+        font-size: 16px;
+        padding: 12px 14px;
+        border: 1.5px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface-2);
+        color: var(--ink);
+        min-height: 48px;
+        min-width: 0;
+      }
+      #typeInput:focus { outline: 2px solid var(--teal-bright); outline-offset: 1px; border-color: var(--teal); }
+      #sendBtn {
+        background: var(--teal);
+        color: var(--teal-ink);
+        flex: none;
+        min-width: 84px;
+      }
+      #typeHint { font-size: 13px; color: var(--ink-soft); margin: 0; display: none; }
+      #typeHint.on { display: block; }
+
+      footer { margin-top: auto; }
+      footer p { font-size: 13px; color: var(--ink-soft); margin: 0; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header>
+        <span class="mark"><span class="diamond" aria-hidden="true"></span>The Mind Curator Studio</span>
+        <h1>Talk to the studio</h1>
+        <p class="lede">Tap the button, allow your microphone, and just speak. The studio replies out loud, right here — no app to install, no number to dial.</p>
+      </header>
+
+      <section class="card" aria-label="Call controls">
+        <div class="status-row">
+          <span class="dot" id="statusDot" aria-hidden="true"></span>
+          <span id="statusText" role="status" aria-live="polite">Not connected</span>
+          <span id="timer" aria-label="Call duration">00:00</span>
+        </div>
+
+        <div class="field" id="codeField">
+          <label for="codeInput">Studio call code</label>
+          <input id="codeInput" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="mcs-desk-…" />
+          <p class="hint">The studio shares this code with its call link. Paste it here if it isn't filled in already.</p>
+        </div>
+
+        <button id="startBtn" type="button">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.6 3h3l1.5 4.5L8.6 9.6a12.6 12.6 0 0 0 5.8 5.8l2.1-2.5L21 14.4v3A2.6 2.6 0 0 1 18.3 20 16.7 16.7 0 0 1 4 5.7 2.6 2.6 0 0 1 6.6 3Z" fill="currentColor"/></svg>
+          Start call
+        </button>
+        <button id="endBtn" type="button">End call</button>
+        <p class="mic-note" id="micNote"></p>
+      </section>
+
+      <section class="card" aria-label="Conversation">
+        <div class="convo-head">
+          <h2>Conversation</h2>
+        </div>
+        <div id="log" aria-live="polite">
+          <p class="empty" id="logEmpty">Nothing yet — what you say and the studio's replies will appear here once the call starts.</p>
+        </div>
+        <p id="typeHint">Typing is on — speech recognition isn't available on this browser, so type your message and tap Send.</p>
+        <form id="typeForm">
+          <input id="typeInput" type="text" placeholder="Type what you want to say…" autocomplete="off" aria-label="Type what you want to say" />
+          <button id="sendBtn" type="submit">Send</button>
+        </form>
+      </section>
+
+      <footer>
+        <p>Your voice is turned into text on your own phone and sent to the studio. Replies come back as text and are spoken aloud here.</p>
+      </footer>
+    </main>
+
+    <audio id="remoteAudio" autoplay playsinline hidden></audio>
+
+    <script>
+      (function () {
+        'use strict';
+
+        var WATCHDOG_MS = 20000;
+
+        var els = {
+          dot: document.getElementById('statusDot'),
+          status: document.getElementById('statusText'),
+          timer: document.getElementById('timer'),
+          codeField: document.getElementById('codeField'),
+          codeInput: document.getElementById('codeInput'),
+          startBtn: document.getElementById('startBtn'),
+          endBtn: document.getElementById('endBtn'),
+          micNote: document.getElementById('micNote'),
+          log: document.getElementById('log'),
+          logEmpty: document.getElementById('logEmpty'),
+          typeForm: document.getElementById('typeForm'),
+          typeInput: document.getElementById('typeInput'),
+          typeHint: document.getElementById('typeHint'),
+          remoteAudio: document.getElementById('remoteAudio')
+        };
+
+        var state = 'idle'; // idle | connecting | live | failed
+        var peer = null;
+        var conn = null;
+        var mediaCall = null;
+        var localStream = null;
+        var silentCtx = null;
+        var recognition = null;
+        var recognitionOn = false;
+        var watchdog = null;
+        var timerInt = null;
+        var callStart = 0;
+        var micDenied = false;
+
+        /* ---------- call code ---------- */
+
+        function codeFromUrl() {
+          var c = '';
+          try {
+            var params = new URLSearchParams(window.location.search);
+            c = params.get('code') || params.get('call') || '';
+          } catch (e) { /* ignore */ }
+          if (!c && window.location.hash) {
+            var m = window.location.hash.match(/#\/call\/(.+)$/);
+            if (m) {
+              try { c = decodeURIComponent(m[1]); } catch (e) { c = m[1]; }
+            }
+          }
+          return (c || '').trim();
+        }
+
+        function currentCode() {
+          return els.codeInput.value.trim();
+        }
+
+        function refreshStartEnabled() {
+          els.startBtn.disabled = state !== 'idle' && state !== 'failed' ? true : currentCode().length === 0;
+          if (state === 'connecting' || state === 'live') els.startBtn.disabled = true;
+        }
+
+        var urlCode = codeFromUrl();
+        if (urlCode) {
+          els.codeInput.value = urlCode;
+        }
+        els.codeInput.addEventListener('input', refreshStartEnabled);
+        refreshStartEnabled();
+        if (!urlCode) {
+          setStatus('idle', 'Enter the studio call code to begin');
+        } else {
+          setStatus('idle', 'Ready — tap Start call');
+        }
+
+        /* ---------- status / timer ---------- */
+
+        function setStatus(kind, text) {
+          els.status.textContent = text;
+          els.dot.className = 'dot' + (kind === 'connecting' ? ' connecting' : kind === 'live' ? ' live' : kind === 'error' ? ' error' : '');
+        }
+
+        function startTimer() {
+          callStart = Date.now();
+          els.timer.textContent = '00:00';
+          els.timer.classList.add('on');
+          timerInt = setInterval(function () {
+            var s = Math.floor((Date.now() - callStart) / 1000);
+            var mm = String(Math.floor(s / 60)).padStart(2, '0');
+            var ss = String(s % 60).padStart(2, '0');
+            els.timer.textContent = mm + ':' + ss;
+          }, 500);
+        }
+
+        function stopTimer() {
+          if (timerInt) { clearInterval(timerInt); timerInt = null; }
+          els.timer.classList.remove('on');
+        }
+
+        /* ---------- conversation ---------- */
+
+        function addMessage(who, text) {
+          if (!text) return;
+          if (els.logEmpty) { els.logEmpty.remove(); els.logEmpty = null; }
+          var wrap = document.createElement('div');
+          wrap.className = 'msg ' + who;
+          var label = document.createElement('span');
+          label.className = 'who';
+          label.textContent = who === 'you' ? 'You' : 'Studio';
+          var bubble = document.createElement('div');
+          bubble.className = 'bubble';
+          bubble.textContent = text;
+          wrap.appendChild(label);
+          wrap.appendChild(bubble);
+          els.log.appendChild(wrap);
+          wrap.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+
+        /* ---------- speech out (studio replies) ---------- */
+
+        var cachedVoice = null;
+        function pickVoice() {
+          if (!('speechSynthesis' in window)) return null;
+          var voices = window.speechSynthesis.getVoices() || [];
+          var enIn = voices.filter(function (v) { return /^en[-_]IN/i.test(v.lang || ''); });
+          var femaleIn = enIn.filter(function (v) {
+            return /female|heera|veena|zira|priya|ananya/i.test(v.name || '');
+          });
+          if (femaleIn.length) return femaleIn[0];
+          if (enIn.length) return enIn[0];
+          var en = voices.filter(function (v) { return /^en/i.test(v.lang || ''); });
+          var femaleEn = en.filter(function (v) { return /female|zira|samantha/i.test(v.name || ''); });
+          if (femaleEn.length) return femaleEn[0];
+          return en.length ? en[0] : null;
+        }
+        if ('speechSynthesis' in window) {
+          cachedVoice = pickVoice();
+          window.speechSynthesis.onvoiceschanged = function () { cachedVoice = pickVoice(); };
+        }
+
+        function speak(text) {
+          if (!('speechSynthesis' in window) || !text) return;
+          try {
+            window.speechSynthesis.cancel();
+            var u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-IN';
+            var v = cachedVoice || pickVoice();
+            if (v) u.voice = v;
+            window.speechSynthesis.speak(u);
+          } catch (e) { /* speaking is best-effort */ }
+        }
+
+        /* ---------- speech in (client voice -> text) ---------- */
+
+        function sendSay(text) {
+          text = (text || '').trim();
+          if (!text) return;
+          if (conn && conn.open) {
+            try { conn.send({ t: 'say', text: text }); } catch (e) { return; }
+            addMessage('you', text);
+          }
+        }
+
+        function startRecognition() {
+          var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SR || micDenied) { showTyping(); return; }
+          try {
+            recognition = new SR();
+          } catch (e) { showTyping(); return; }
+          recognition.lang = 'en-IN';
+          recognition.continuous = true;
+          recognition.interimResults = false;
+
+          recognition.onresult = function (event) {
+            for (var i = event.resultIndex; i < event.results.length; i++) {
+              var res = event.results[i];
+              if (res.isFinal) {
+                var text = res[0] && res[0].transcript ? res[0].transcript.trim() : '';
+                if (text) sendSay(text);
+              }
+            }
+          };
+          recognition.onerror = function (event) {
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed' || event.error === 'audio-capture') {
+              recognitionOn = false;
+              showTyping();
+              els.micNote.textContent = 'Microphone or speech recognition is unavailable, so typing is on instead — your messages still reach the studio.';
+              els.micNote.classList.add('on');
+            }
+          };
+          recognition.onend = function () {
+            if (recognitionOn && state === 'live') {
+              try { recognition.start(); } catch (e) { /* already restarting */ }
+            }
+          };
+          recognitionOn = true;
+          try { recognition.start(); } catch (e) { /* ignore */ }
+        }
+
+        function stopRecognition() {
+          recognitionOn = false;
+          if (recognition) {
+            try { recognition.onend = null; recognition.stop(); } catch (e) { /* ignore */ }
+            recognition = null;
+          }
+        }
+
+        function showTyping() {
+          els.typeForm.classList.add('on');
+          els.typeHint.classList.add('on');
+        }
+
+        /* ---------- media helpers ---------- */
+
+        function silentStream() {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) return null;
+          silentCtx = new AC();
+          var dst = silentCtx.createMediaStreamDestination();
+          return dst.stream;
+        }
+
+        function getMicStream() {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            return navigator.mediaDevices.getUserMedia({ audio: true }).then(
+              function (stream) { return { stream: stream, silent: false }; },
+              function () { micDenied = true; return { stream: silentStream(), silent: true }; }
+            );
+          }
+          micDenied = true;
+          return Promise.resolve({ stream: silentStream(), silent: true });
+        }
+
+        /* ---------- call lifecycle ---------- */
+
+        function guestId() {
+          var rand = '';
+          var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+          for (var i = 0; i < 12; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+          return 'mcs-guest-' + rand;
+        }
+
+        function clearWatchdog() {
+          if (watchdog) { clearTimeout(watchdog); watchdog = null; }
+        }
+
+        function failNotReceiving() {
+          if (state === 'live') return;
+          cleanupCall();
+          state = 'failed';
+          setStatus('error', "The studio isn't receiving right now — check the call code and try again.");
+          els.endBtn.classList.remove('on');
+          els.startBtn.style.display = '';
+          els.codeInput.disabled = false;
+          refreshStartEnabled();
+        }
+
+        function cleanupCall() {
+          clearWatchdog();
+          stopTimer();
+          stopRecognition();
+          if ('speechSynthesis' in window) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+          if (conn) { try { conn.close(); } catch (e) {} conn = null; }
+          if (mediaCall) { try { mediaCall.close(); } catch (e) {} mediaCall = null; }
+          if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
+          if (localStream) {
+            localStream.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} });
+            localStream = null;
+          }
+          if (silentCtx) { try { silentCtx.close(); } catch (e) {} silentCtx = null; }
+          els.remoteAudio.srcObject = null;
+        }
+
+        function onLive() {
+          clearWatchdog();
+          state = 'live';
+          setStatus('live', 'Live — speak now, the studio can hear you');
+          startTimer();
+          els.micNote.classList.remove('on');
+          if (micDenied) {
+            showTyping();
+            els.micNote.textContent = 'Microphone is off, so typing is on instead — your messages still reach the studio.';
+            els.micNote.classList.add('on');
+          } else if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) {
+            showTyping();
+          } else {
+            els.typeForm.classList.add('on');
+            els.typeHint.classList.remove('on');
+            startRecognition();
+          }
+        }
+
+        function onRemoteEnded() {
+          if (state !== 'live' && state !== 'connecting') return;
+          cleanupCall();
+          state = 'idle';
+          setStatus('idle', 'Call ended');
+          els.endBtn.classList.remove('on');
+          els.startBtn.style.display = '';
+          els.codeInput.disabled = false;
+          els.typeForm.classList.remove('on');
+          els.typeHint.classList.remove('on');
+          refreshStartEnabled();
+        }
+
+        function startCall() {
+          var code = currentCode();
+          if (!code || state === 'connecting' || state === 'live') return;
+
+          if (typeof Peer === 'undefined') {
+            setStatus('error', "Couldn't load the call network — check your connection and try again.");
+            return;
+          }
+
+          state = 'connecting';
+          micDenied = false;
+          setStatus('connecting', 'Connecting to the studio…');
+          els.startBtn.style.display = 'none';
+          els.endBtn.classList.add('on');
+          els.codeInput.disabled = true;
+          refreshStartEnabled();
+
+          watchdog = setTimeout(failNotReceiving, WATCHDOG_MS);
+
+          getMicStream().then(function (result) {
+            if (state !== 'connecting') return; // ended while asking for mic
+            localStream = result.stream;
+
+            peer = new Peer(guestId(), {
+              host: '0.peerjs.com',
+              port: 443,
+              secure: true,
+              path: '/',
+              config: {
+                iceServers: [
+                  { urls: 'stun:stun.l.google.com:19302' },
+                  { urls: 'stun:stun1.l.google.com:19302' },
+                  { urls: 'stun:stun2.l.google.com:19302' }
+                ]
+              }
+            });
+
+            peer.on('error', function (err) {
+              if (err && err.type === 'peer-unavailable') {
+                failNotReceiving();
+              } else if (state === 'connecting') {
+                failNotReceiving();
+              }
+            });
+
+            peer.on('open', function () {
+              if (state !== 'connecting' || !peer) return;
+
+              conn = peer.connect(code, { reliable: true });
+
+              conn.on('open', function () {
+                if (state === 'connecting') onLive();
+              });
+
+              conn.on('data', function (data) {
+                var msg = data;
+                if (typeof data === 'string') {
+                  try { msg = JSON.parse(data); } catch (e) { return; }
+                }
+                if (msg && msg.t === 'reply' && typeof msg.text === 'string') {
+                  addMessage('studio', msg.text);
+                  speak(msg.text);
+                }
+              });
+
+              conn.on('close', onRemoteEnded);
+              conn.on('error', function () { /* watchdog / close will handle state */ });
+
+              if (localStream) {
+                mediaCall = peer.call(code, localStream);
+                if (mediaCall) {
+                  mediaCall.on('stream', function (remote) {
+                    els.remoteAudio.srcObject = remote;
+                    var p = els.remoteAudio.play();
+                    if (p && p.catch) p.catch(function () {});
+                  });
+                  mediaCall.on('close', onRemoteEnded);
+                }
+              }
+            });
+          });
+        }
+
+        function endCall() {
+          cleanupCall();
+          state = 'idle';
+          setStatus('idle', 'Call ended — tap Start call to ring again');
+          els.endBtn.classList.remove('on');
+          els.startBtn.style.display = '';
+          els.codeInput.disabled = false;
+          els.typeForm.classList.remove('on');
+          els.typeHint.classList.remove('on');
+          els.micNote.classList.remove('on');
+          refreshStartEnabled();
+        }
+
+        els.startBtn.addEventListener('click', startCall);
+        els.endBtn.addEventListener('click', endCall);
+
+        els.typeForm.addEventListener('submit', function (ev) {
+          ev.preventDefault();
+          var text = els.typeInput.value;
+          if (text.trim()) {
+            sendSay(text);
+            els.typeInput.value = '';
+          }
+          els.typeInput.focus();
+        });
+
+        window.addEventListener('beforeunload', function () {
+          cleanupCall();
+        });
+      })();
+    </script>
+  </body>
+</html>
